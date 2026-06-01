@@ -8,7 +8,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "rm -rf dist && tsc",
+        "build": "rm -rf dist && tsc && rm -rf dist/__tests__",
         "dev": "tsc --watch",
         "test": "jest"
     },
