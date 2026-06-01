@@ -83,3 +83,53 @@ describe("ApiClient.register", () => {
         });
     });
 });
+
+describe("ApiClient.verifyToken", () => {
+    it("returns success:true and is_valid:true on success", async () => {
+        mockFetch.mockReturnValueOnce(mockResponse({ valid: true }));
+
+        const result = await client.verifyToken("tok_456");
+
+        expect(result).toEqual({
+            success: true,
+            is_valid: true,
+        });
+    });
+
+    it("returns success:true and is_valid:false if token is invalid", async () => {
+        mockFetch.mockReturnValueOnce(mockResponse({ valid: false, msg: "Invalid token" }));
+
+        const result = await client.verifyToken("tok_456");
+
+        expect(result).toEqual({
+            success: true,
+            is_valid: false,
+        });
+    });
+});
+
+describe("ApiClient.attachImage", () => {
+    it("returns success:true on successful attachment", async () => {
+        mockFetch.mockReturnValueOnce(mockResponse({ success: true, urls: ["https://example.com/image.jpg"] }));
+
+        const result = await client.attachImage("tok_456", {
+            uri: "file:///path/to/image.jpg",
+            name: "image.jpg",
+            type: "image/jpeg",
+        });
+
+        expect(result).toEqual({ success: true, urls: ["https://example.com/image.jpg"] });
+    });
+
+    it("returns success:false and message on failure", async () => {
+        mockFetch.mockReturnValueOnce(mockResponse({ success: false, msg: "Failed to attach image" }, false));
+
+        const result = await client.attachImage("tok_456", {
+            uri: "file:///path/to/image.jpg",
+            name: "image.jpg",
+            type: "image/jpeg",
+        });
+
+        expect(result).toEqual({ success: false, message: "Failed to attach image" });
+    });
+});
