@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/gooseDes/min-node-api-client/issues"
   },
-  "homepage": "https://github.com/gooseDes/min-node-api-client#readme"
+  "homepage": "https://github.com/gooseDes/min-node-api-client#readme",
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
+  }
 }

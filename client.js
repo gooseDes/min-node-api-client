@@ -2,28 +2,76 @@ export class ApiClient {
     constructor(options) {
         this.url = options.url;
     }
-    async login(email, password) {
-        const response = await fetch(`${this.url}/login`, {
+    async jsonHttpRequest(endpoint, data) {
+        const responce = await fetch(`${this.url}/${endpoint}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(data),
         });
-        const json = await response.json();
-        if (!response.ok) {
+        const json = await responce.json();
+        if (responce.ok) {
+            return { success: true, data: json };
+        }
+        else {
             return { success: false, message: json.msg };
         }
-        return { success: true, token: json.token, user: { id: json.id, email: email, username: json.username } };
+    }
+    async httpRequest(endpoint, options) {
+        const { token, body } = options !== null && options !== void 0 ? options : {};
+        const responce = await fetch(`${this.url}/${endpoint}`, {
+            method: "POST",
+            ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+            body,
+        });
+        const json = await responce.json();
+        if (responce.ok) {
+            return { success: true, data: json };
+        }
+        else {
+            return { success: false, message: json.msg };
+        }
+    }
+    async login(email, password) {
+        const response = await this.jsonHttpRequest("login", { email, password });
+        if (!response.success) {
+            return { success: false, message: response.message };
+        }
+        return {
+            success: true,
+            token: response.data.token,
+            user: { id: response.data.id, email: email, username: response.data.username },
+        };
     }
     async register(username, email, password) {
-        const response = await fetch(`${this.url}/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, email, password }),
-        });
-        const json = await response.json();
-        if (!response.ok) {
-            return { success: false, message: json.msg };
+        const response = await this.jsonHttpRequest("register", { username, email, password });
+        if (!response.success) {
+            return { success: false, message: response.message };
         }
-        return { success: true, token: json.token, user: { id: json.id, email, username } };
+        return { success: true, token: response.data.token, user: { id: response.data.id, email, username } };
+    }
+    async verifyToken(token) {
+        const response = await this.jsonHttpRequest("verify", { token });
+        if (!response.success) {
+            return { success: false, message: response.message };
+        }
+        return {
+            success: true,
+            is_valid: response.data.valid,
+        };
+    }
+    async attachImage(token, image) {
+        const formData = new FormData();
+        if (image instanceof File) {
+            formData.append("attachments", image);
+        }
+        else {
+            /* @ts-ignore */
+            formData.append("attachments", image);
+        }
+        const response = await this.httpRequest("attach", { body: formData, token });
+        if (!response.success) {
+            return { success: false, message: response.message };
+        }
+        return { success: true, urls: response.data.urls };
     }
 }
