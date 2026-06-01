@@ -1,0 +1,39 @@
+name: Build TypeScript and Publish to Branch
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js Environment
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Run Tests
+              run: npm test
+
+            - name: Compile TypeScript
+              run: npm run build
+
+            - name: Deploy Build to Target Branch
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  branch: build
+                  folder: dist
+                  clean: true

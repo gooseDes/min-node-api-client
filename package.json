@@ -9,7 +9,8 @@
     ],
     "scripts": {
         "build": "rm -rf dist && tsc",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "test": "jest"
     },
     "repository": {
         "type": "git",
@@ -25,9 +26,12 @@
     "homepage": "https://github.com/gooseDes/min-node-api-client#readme",
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@types/jest": "^30.0.0",
         "@types/node": "^25.9.1",
         "eslint": "^10.4.1",
+        "jest": "^30.4.2",
         "prettier": "^3.8.3",
+        "ts-jest": "^29.4.11",
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.60.0"
     }
