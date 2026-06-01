@@ -39,6 +39,7 @@ jobs:
                     delete pkg.scripts;
                     pkg.main = pkg.main?.replace('dist/', '') ?? 'index.js';
                     pkg.types = pkg.types?.replace('dist/', '') ?? 'index.d.ts';
+                    pkg.files = ['./*'];
                     if (pkg.exports) {
                       const raw = JSON.stringify(pkg.exports);
                       pkg.exports = JSON.parse(raw.replace(/dist\//g, ''));
