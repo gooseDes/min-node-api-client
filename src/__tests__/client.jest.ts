@@ -30,7 +30,7 @@ describe("ApiClient.login", () => {
     });
 
     it("returns success:false and message on error", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ message: "Invalid credentials" }, false, 401));
+        mockFetch.mockReturnValueOnce(mockResponse({ msg: "Invalid credentials" }, false, 401));
 
         const result = await client.login("alice@example.com", "wrong");
 
@@ -64,7 +64,7 @@ describe("ApiClient.register", () => {
     });
 
     it("returns success:false and message if email or username is already in use", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ message: "Email already in use" }, false, 409));
+        mockFetch.mockReturnValueOnce(mockResponse({ msg: "Email already in use" }, false, 409));
 
         const result = await client.register("bob", "bob@example.com", "secret");
 
