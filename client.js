@@ -74,4 +74,19 @@ export class ApiClient {
         }
         return { success: true, urls: response.data.urls };
     }
+    async uploadAvatar(token, image) {
+        const formData = new FormData();
+        if (image instanceof File) {
+            formData.append("avatar", image);
+        }
+        else {
+            /* @ts-ignore */
+            formData.append("avatar", image);
+        }
+        const response = await this.httpRequest("avatar", { body: formData, token });
+        if (!response.success) {
+            return { success: false, message: response.message };
+        }
+        return { success: true, url: response.data.url, avatar: response.data.avatar };
+    }
 }

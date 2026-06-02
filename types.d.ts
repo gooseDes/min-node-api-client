@@ -45,3 +45,11 @@ export type AttachImageResult = {
     success: true;
     urls: string[];
 };
+export type UploadAvatarResult = {
+    success: false;
+    message: string;
+} | {
+    success: true;
+    url: string;
+    avatar: string;
+};

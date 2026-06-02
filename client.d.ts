@@ -1,4 +1,4 @@
-import { ApiClientOptions, AttachImageResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, VerifyTokenResult } from "./types";
+import { ApiClientOptions, AttachImageResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
 export declare class ApiClient {
     private url;
     constructor(options: ApiClientOptions);
@@ -8,4 +8,5 @@ export declare class ApiClient {
     register(username: string, email: string, password: string): Promise<LoginResult>;
     verifyToken(token: string): Promise<VerifyTokenResult>;
     attachImage(token: string, image: Image): Promise<AttachImageResult>;
+    uploadAvatar(token: string, image: Image): Promise<UploadAvatarResult>;
 }
