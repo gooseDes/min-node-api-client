@@ -5,6 +5,7 @@ import {
     Image,
     JsonHttpRequestResult,
     LoginResult,
+    UploadAvatarResult,
     VerifyTokenResult,
 } from "./types";
 
@@ -88,5 +89,20 @@ export class ApiClient {
             return { success: false, message: response.message };
         }
         return { success: true, urls: response.data.urls };
+    }
+
+    async uploadAvatar(token: string, image: Image): Promise<UploadAvatarResult> {
+        const formData = new FormData();
+        if (image instanceof File) {
+            formData.append("avatar", image);
+        } else {
+            /* @ts-ignore */
+            formData.append("avatar", image);
+        }
+        const response = await this.httpRequest("upload-avatar", { body: formData, token });
+        if (!response.success) {
+            return { success: false, message: response.message };
+        }
+        return { success: true, url: response.data.url, avatar: response.data.avatar };
     }
 }

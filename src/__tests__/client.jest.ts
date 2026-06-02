@@ -133,3 +133,31 @@ describe("ApiClient.attachImage", () => {
         expect(result).toEqual({ success: false, message: "Failed to attach image" });
     });
 });
+
+describe("ApiClient.uploadAvatar", () => {
+    it("returns success:true on successful upload", async () => {
+        mockFetch.mockReturnValueOnce(
+            mockResponse({ success: true, url: "https://example.com/avatar_suffix.webp", avatar: "avatar_suffix" }),
+        );
+
+        const result = await client.uploadAvatar("tok_456", {
+            uri: "file:///path/to/avatar.jpg",
+            name: "avatar.jpg",
+            type: "image/jpeg",
+        });
+
+        expect(result).toEqual({ success: true, url: "https://example.com/avatar_suffix.webp", avatar: "avatar_suffix" });
+    });
+
+    it("returns success:false and message on failure", async () => {
+        mockFetch.mockReturnValueOnce(mockResponse({ success: false, msg: "Failed to upload avatar" }, false));
+
+        const result = await client.uploadAvatar("tok_456", {
+            uri: "file:///path/to/avatar.jpg",
+            name: "avatar.jpg",
+            type: "image/jpeg",
+        });
+
+        expect(result).toEqual({ success: false, message: "Failed to upload avatar" });
+    });
+});
