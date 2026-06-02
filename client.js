@@ -83,7 +83,7 @@ export class ApiClient {
             /* @ts-ignore */
             formData.append("avatar", image);
         }
-        const response = await this.httpRequest("avatar", { body: formData, token });
+        const response = await this.httpRequest("upload-avatar", { body: formData, token });
         if (!response.success) {
             return { success: false, message: response.message };
         }
