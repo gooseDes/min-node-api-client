@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/gooseDes/min-node-api-client#readme",
   "allowScripts": {
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "msw@2.14.6": true
   }
 }
