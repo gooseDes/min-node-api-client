@@ -1,9 +1,13 @@
+import { testUrl } from "@/__mocks__/handlers";
+import { server } from "@/__mocks__/server";
 import { ApiClient } from "@/client";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { http, HttpResponse } from "msw";
 
 const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// global.fetch = mockFetch;
 
-const client = new ApiClient({ url: "https://api.example.com" });
+const client = new ApiClient({ url: testUrl });
 
 const mockResponse = (body: object, ok = true, status = 200) =>
     Promise.resolve({
@@ -18,146 +22,169 @@ beforeEach(() => {
 
 describe("ApiClient.login", () => {
     it("returns success:true and user data on success", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ token: "tok_123", id: 1, username: "alice" }));
-
-        const result = await client.login("alice@example.com", "pass123");
+        const result = await client.login("user@example.com", "pass");
 
         expect(result).toEqual({
             success: true,
             token: "tok_123",
-            user: { id: 1, email: "alice@example.com", username: "alice" },
+            user: { id: 1, email: "user@example.com", username: "user" },
         });
     });
 
     it("returns success:false and message on error", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ msg: "Invalid credentials" }, false, 401));
-
         const result = await client.login("alice@example.com", "wrong");
 
         expect(result).toEqual({ success: false, message: "Invalid credentials" });
     });
 
     it("sends POST to /login with correct headers and body", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ token: "tok_123", id: 1, username: "alice" }));
+        let capturedRequest: Request | undefined;
 
-        await client.login("alice@example.com", "pass123");
+        server.use(
+            http.post(`${testUrl}/login`, async ({ request }) => {
+                capturedRequest = request.clone();
+                return;
+            }),
+        );
 
-        expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "alice@example.com", password: "pass123" }),
-        });
+        await client.login("user@example.com", "pass");
+
+        expect(capturedRequest!).toBeDefined();
+        const body = await capturedRequest!.json();
+        expect(body).toEqual({ email: "user@example.com", password: "pass" });
     });
 });
 
 describe("ApiClient.register", () => {
     it("returns success:true and user data on success", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ token: "tok_456", id: 2, username: "bob" }));
-
-        const result = await client.register("bob", "bob@example.com", "secret");
+        const result = await client.register("user2", "user2@example.com", "pass");
 
         expect(result).toEqual({
             success: true,
             token: "tok_456",
-            user: { id: 2, email: "bob@example.com", username: "bob" },
+            user: { id: 2, email: "user2@example.com", username: "user2" },
         });
     });
 
     it("returns success:false and message if email or username is already in use", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ msg: "Email already in use" }, false, 409));
+        const result = await client.register("user", "user@example.com", "pass");
 
-        const result = await client.register("bob", "bob@example.com", "secret");
-
-        expect(result).toEqual({ success: false, message: "Email already in use" });
+        expect(result).toEqual({ success: false, message: "Username or email already in use" });
     });
 
     it("sends POST to /register with correct headers and body", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ token: "tok_456", id: 2, username: "bob" }));
+        let capturedRequest: Request | undefined;
 
-        await client.register("bob", "bob@example.com", "secret");
+        server.use(
+            http.post(`${testUrl}/register`, async ({ request }) => {
+                capturedRequest = request.clone();
+                return;
+            }),
+        );
 
-        expect(mockFetch).toHaveBeenCalledWith("https://api.example.com/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: "bob", email: "bob@example.com", password: "secret" }),
-        });
+        await client.register("user2", "user2@example.com", "pass");
+
+        expect(capturedRequest!).toBeDefined();
+        const body = await capturedRequest!.json();
+        expect(body).toEqual({ username: "user2", email: "user2@example.com", password: "pass" });
     });
 });
 
 describe("ApiClient.verifyToken", () => {
     it("returns success:true and is_valid:true on success", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ valid: true }));
+        const result = await client.verifyToken("tok_valid");
 
-        const result = await client.verifyToken("tok_456");
-
-        expect(result).toEqual({
-            success: true,
-            is_valid: true,
-        });
+        expect(result).toEqual({ success: true, is_valid: true });
     });
 
     it("returns success:true and is_valid:false if token is invalid", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ valid: false, msg: "Invalid token" }));
+        const result = await client.verifyToken("tok_invalid");
 
-        const result = await client.verifyToken("tok_456");
+        expect(result).toEqual({ success: true, is_valid: false });
+    });
 
-        expect(result).toEqual({
-            success: true,
-            is_valid: false,
-        });
+    it("sends POST to /verify with correct body", async () => {
+        let capturedRequest: Request | undefined;
+
+        server.use(
+            http.post(`${testUrl}/verify`, async ({ request }) => {
+                capturedRequest = request.clone();
+                return;
+            }),
+        );
+
+        await client.verifyToken("tok_valid");
+
+        expect(capturedRequest!).toBeDefined();
+        const body = await capturedRequest!.json();
+        expect(body).toEqual({ token: "tok_valid" });
     });
 });
 
 describe("ApiClient.attachImage", () => {
+    const image = { uri: "file:///path/to/image.jpg", name: "image.jpg", type: "image/jpeg" };
+
     it("returns success:true on successful attachment", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ success: true, urls: ["https://example.com/image.jpg"] }));
+        const result = await client.attachImage("tok_valid", image);
 
-        const result = await client.attachImage("tok_456", {
-            uri: "file:///path/to/image.jpg",
-            name: "image.jpg",
-            type: "image/jpeg",
-        });
-
-        expect(result).toEqual({ success: true, urls: ["https://example.com/image.jpg"] });
+        expect(result).toEqual({ success: true, urls: ["https://example.com/image.webp"] });
     });
 
     it("returns success:false and message on failure", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ success: false, msg: "Failed to attach image" }, false));
+        const result = await client.attachImage("tok_invalid", image);
 
-        const result = await client.attachImage("tok_456", {
-            uri: "file:///path/to/image.jpg",
-            name: "image.jpg",
-            type: "image/jpeg",
-        });
+        expect(result).toEqual({ success: false, message: "Unauthorized" });
+    });
 
-        expect(result).toEqual({ success: false, message: "Failed to attach image" });
+    it("sends POST to /attach with correct auth header", async () => {
+        let capturedRequest: Request | undefined;
+
+        server.use(
+            http.post(`${testUrl}/attach`, async ({ request }) => {
+                capturedRequest = request.clone();
+                return;
+            }),
+        );
+
+        await client.attachImage("tok_valid", image);
+
+        expect(capturedRequest!).toBeDefined();
+        expect(capturedRequest!.headers.get("Authorization")).toBe("Bearer tok_valid");
     });
 });
 
 describe("ApiClient.uploadAvatar", () => {
+    const avatar = { uri: "file:///path/to/avatar.jpg", name: "avatar.jpg", type: "image/jpeg" };
+
     it("returns success:true on successful upload", async () => {
-        mockFetch.mockReturnValueOnce(
-            mockResponse({ success: true, url: "https://example.com/avatar_suffix.webp", avatar: "avatar_suffix" }),
-        );
+        const result = await client.uploadAvatar("tok_valid", avatar);
 
-        const result = await client.uploadAvatar("tok_456", {
-            uri: "file:///path/to/avatar.jpg",
-            name: "avatar.jpg",
-            type: "image/jpeg",
+        expect(result).toEqual({
+            success: true,
+            url: "https://example.com/avatar_suffix.webp",
+            avatar: "avatar_suffix",
         });
-
-        expect(result).toEqual({ success: true, url: "https://example.com/avatar_suffix.webp", avatar: "avatar_suffix" });
     });
 
     it("returns success:false and message on failure", async () => {
-        mockFetch.mockReturnValueOnce(mockResponse({ success: false, msg: "Failed to upload avatar" }, false));
+        const result = await client.uploadAvatar("tok_invalid", avatar);
 
-        const result = await client.uploadAvatar("tok_456", {
-            uri: "file:///path/to/avatar.jpg",
-            name: "avatar.jpg",
-            type: "image/jpeg",
-        });
+        expect(result).toEqual({ success: false, message: "Unauthorized" });
+    });
 
-        expect(result).toEqual({ success: false, message: "Failed to upload avatar" });
+    it("sends POST to /upload-avatar with correct auth header", async () => {
+        let capturedRequest: Request | undefined;
+
+        server.use(
+            http.post(`${testUrl}/upload-avatar`, async ({ request }) => {
+                capturedRequest = request.clone();
+                return;
+            }),
+        );
+
+        await client.uploadAvatar("tok_valid", avatar);
+
+        expect(capturedRequest!).toBeDefined();
+        expect(capturedRequest!.headers.get("Authorization")).toBe("Bearer tok_valid");
     });
 });

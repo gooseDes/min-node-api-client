@@ -8,9 +8,11 @@
         "outDir": "./dist",
         "rootDir": "./src",
         "strict": true,
-        "types": ["*"],
+        "types": ["node"],
         "paths": {
             "@/*": ["./src/*"],
+            "@tests/*": ["./src/__tests__/*"],
+            "@mocks/*": ["./src/__mocks__/*"],
         },
     },
     "include": ["src"],
