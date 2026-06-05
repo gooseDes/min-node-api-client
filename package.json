@@ -8,7 +8,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "rm -rf dist && tsc && rm -rf dist/__tests__",
+        "build": "rm -rf dist && tsc -p tsconfig.build.json",
         "dev": "tsc --watch",
         "test": "NODE_OPTIONS='--experimental-vm-modules' jest"
     },
