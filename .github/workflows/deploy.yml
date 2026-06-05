@@ -2,7 +2,7 @@ name: Build TypeScript and Publish to Branch
 on:
     push:
         branches:
-            - main
+            - release
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
