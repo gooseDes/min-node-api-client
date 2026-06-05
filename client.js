@@ -1,6 +1,8 @@
+import { WebSocketClient } from "./websocket";
 export class ApiClient {
     constructor(options) {
         this.url = options.url;
+        this.socket = new WebSocketClient(this.url);
     }
     async jsonHttpRequest(endpoint, data) {
         const responce = await fetch(`${this.url}/${endpoint}`, {
@@ -88,5 +90,8 @@ export class ApiClient {
             return { success: false, message: response.message };
         }
         return { success: true, url: response.data.url, avatar: response.data.avatar };
+    }
+    initSocket(token) {
+        this.socket.init(token);
     }
 }
