@@ -8,12 +8,15 @@ import {
     UploadAvatarResult,
     VerifyTokenResult,
 } from "./types";
+import { WebSocketClient } from "./websocket";
 
 export class ApiClient {
     private url: string;
+    public socket: WebSocketClient;
 
     constructor(options: ApiClientOptions) {
         this.url = options.url;
+        this.socket = new WebSocketClient(this.url);
     }
 
     async jsonHttpRequest(endpoint: string, data: any): Promise<JsonHttpRequestResult> {
@@ -104,5 +107,9 @@ export class ApiClient {
             return { success: false, message: response.message };
         }
         return { success: true, url: response.data.url, avatar: response.data.avatar };
+    }
+
+    initSocket(token: string) {
+        this.socket.init(token);
     }
 }

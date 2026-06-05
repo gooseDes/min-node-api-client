@@ -6,7 +6,7 @@ export default tseslint.config(js.configs.recommended, ...tseslint.configs.recom
     languageOptions: {
         parserOptions: {
             project: true,
-            tsconfigRootDir: import.meta.dirname,
+            tsconfigRootDir: import.meta.url,
         },
     },
 });

@@ -1,24 +1,10 @@
 import { testUrl } from "@/__mocks__/handlers";
 import { server } from "@/__mocks__/server";
 import { ApiClient } from "@/client";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { http, HttpResponse } from "msw";
-
-const mockFetch = jest.fn();
-// global.fetch = mockFetch;
+import { describe, expect, it } from "@jest/globals";
+import { http } from "msw";
 
 const client = new ApiClient({ url: testUrl });
-
-const mockResponse = (body: object, ok = true, status = 200) =>
-    Promise.resolve({
-        ok,
-        status,
-        json: () => Promise.resolve(body),
-    } as Response);
-
-beforeEach(() => {
-    mockFetch.mockClear();
-});
 
 describe("ApiClient.login", () => {
     it("returns success:true and user data on success", async () => {
