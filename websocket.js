@@ -1,16 +1,21 @@
 import { io } from "socket.io-client";
 export class Subscription {
-    constructor(socket, event, callback) {
+    constructor(id, subscriptions, socket, event, callback) {
+        this.id = id;
+        this.subscriptions = subscriptions;
         this.socket = socket;
         this.event = event;
         this.callback = callback;
     }
-    unsubscribe() {
+    remove() {
         this.socket.off(this.event, this.callback);
+        this.subscriptions.delete(this.id);
     }
 }
 export class WebSocketClient {
     constructor(url) {
+        this.subscriptions = new Map();
+        this.lastSubscriptionId = 0;
         this.url = url;
     }
     init(token) {
@@ -21,13 +26,25 @@ export class WebSocketClient {
         if (!this.socket) {
             throw new Error("Socket is not initialized yet");
         }
+        let newCallback;
+        const id = this.lastSubscriptionId++;
         if (once) {
-            this.socket.once(event, callback);
+            const wrapper = (data) => {
+                if (!this.subscriptions.has(id))
+                    return;
+                this.subscriptions.delete(id);
+                callback(data);
+            };
+            newCallback = wrapper;
+            this.socket.once(event, wrapper);
         }
         else {
-            this.socket.on(event, callback);
+            newCallback = callback;
+            this.socket.on(event, newCallback);
         }
-        return new Subscription(this.socket, event, callback);
+        const subscription = new Subscription(id, this.subscriptions, this.socket, event, newCallback);
+        this.subscriptions.set(id, subscription);
+        return subscription;
     }
     emit(event, data) {
         if (!this.socket) {
@@ -41,10 +58,17 @@ export class WebSocketClient {
         }
     }
     reset() {
+        for (const subscription of this.subscriptions.values()) {
+            subscription.remove();
+        }
         try {
             this.close();
         }
-        catch { }
+        catch (e) {
+            console.error("WebSocketClient: error during disconnect", e);
+        }
         this.socket = undefined;
+        this.subscriptions.clear();
+        this.lastSubscriptionId = -1;
     }
 }
