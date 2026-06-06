@@ -15,4 +15,5 @@ export declare class WebSocketClient {
     subscribe(event: WebSocketEvent, callback: (data: any) => void, options?: WebSocketSubscribeOptions): Subscription;
     emit(event: WebSocketEmitEvent, data: any): void;
     close(): void;
+    reset(): void;
 }

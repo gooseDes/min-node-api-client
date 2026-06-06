@@ -40,4 +40,11 @@ export class WebSocketClient {
             this.socket.disconnect();
         }
     }
+    reset() {
+        try {
+            this.close();
+        }
+        catch { }
+        this.socket = undefined;
+    }
 }
