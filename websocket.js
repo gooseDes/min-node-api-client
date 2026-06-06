@@ -1,15 +1,13 @@
 import { io } from "socket.io-client";
 export class Subscription {
-    constructor(id, subscriptions, socket, event, callback) {
+    constructor(id, socket, event, callback) {
         this.id = id;
-        this.subscriptions = subscriptions;
         this.socket = socket;
         this.event = event;
         this.callback = callback;
     }
     remove() {
-        this.socket.off(this.event, this.callback);
-        this.subscriptions.delete(this.id);
+        this.socket.removeSubscription(this.id);
     }
 }
 export class WebSocketClient {
@@ -21,11 +19,13 @@ export class WebSocketClient {
     init(token) {
         this.socket = io(this.url, { auth: { token } });
     }
+    async waitForSocket() {
+        while (!this.socket) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+    }
     subscribe(event, callback, options) {
         const { once = false } = options !== null && options !== void 0 ? options : {};
-        if (!this.socket) {
-            throw new Error("Socket is not initialized yet");
-        }
         let newCallback;
         const id = this.lastSubscriptionId++;
         if (once) {
@@ -36,21 +36,37 @@ export class WebSocketClient {
                 callback(data);
             };
             newCallback = wrapper;
-            this.socket.once(event, wrapper);
+            this.waitForSocket().then(() => {
+                if (this.socket)
+                    this.socket.once(event, wrapper);
+            });
         }
         else {
             newCallback = callback;
-            this.socket.on(event, newCallback);
+            this.waitForSocket().then(() => {
+                if (this.socket)
+                    this.socket.on(event, newCallback);
+            });
         }
-        const subscription = new Subscription(id, this.subscriptions, this.socket, event, newCallback);
+        const subscription = new Subscription(id, this, event, newCallback);
         this.subscriptions.set(id, subscription);
         return subscription;
     }
-    emit(event, data) {
-        if (!this.socket) {
-            throw new Error("Socket is not initialized yet");
+    removeSubscription(id) {
+        if (this.subscriptions.has(id)) {
+            const subscription = this.subscriptions.get(id);
+            this.subscriptions.delete(id);
+            this.waitForSocket().then(() => {
+                if (this.socket)
+                    this.socket.off(subscription.event, subscription.callback);
+            });
         }
-        this.socket.emit(event, data);
+    }
+    emit(event, data) {
+        this.waitForSocket().then(() => {
+            if (this.socket)
+                this.socket.emit(event, data);
+        });
     }
     close() {
         if (this.socket) {
