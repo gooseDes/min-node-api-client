@@ -2,24 +2,37 @@ import { io, Socket } from "socket.io-client";
 import { WebSocketEmitEvent, WebSocketEvent, WebSocketSubscribeOptions } from "./types";
 
 export class Subscription {
+    private id: number;
+    private subscriptions: Map<number, Subscription>;
     private event: WebSocketEvent;
     private callback: (data: any) => void;
     private socket: Socket;
 
-    constructor(socket: Socket, event: WebSocketEvent, callback: (data: any) => void) {
+    constructor(
+        id: number,
+        subscriptions: Map<number, Subscription>,
+        socket: Socket,
+        event: WebSocketEvent,
+        callback: (data: any) => void,
+    ) {
+        this.id = id;
+        this.subscriptions = subscriptions;
         this.socket = socket;
         this.event = event;
         this.callback = callback;
     }
 
-    unsubscribe() {
+    remove() {
         this.socket.off(this.event, this.callback);
+        this.subscriptions.delete(this.id);
     }
 }
 
 export class WebSocketClient {
     private socket: Socket | undefined;
     private url: string;
+    public subscriptions = new Map<number, Subscription>();
+    private lastSubscriptionId: number = 0;
 
     constructor(url: string) {
         this.url = url;
@@ -36,12 +49,27 @@ export class WebSocketClient {
             throw new Error("Socket is not initialized yet");
         }
 
+        let newCallback: typeof callback;
+
+        const id = this.lastSubscriptionId++;
+
         if (once) {
-            this.socket.once(event, callback);
+            const wrapper = (data: any) => {
+                if (!this.subscriptions.has(id)) return;
+                this.subscriptions.delete(id);
+                callback(data);
+            };
+            newCallback = wrapper;
+            this.socket.once(event, wrapper);
         } else {
-            this.socket.on(event, callback);
+            newCallback = callback;
+            this.socket.on(event, newCallback);
         }
-        return new Subscription(this.socket, event, callback);
+
+        const subscription = new Subscription(id, this.subscriptions, this.socket, event, newCallback);
+        this.subscriptions.set(id, subscription);
+
+        return subscription;
     }
 
     emit(event: WebSocketEmitEvent, data: any): void {
@@ -58,9 +86,18 @@ export class WebSocketClient {
     }
 
     reset(): void {
+        for (const subscription of this.subscriptions.values()) {
+            subscription.remove();
+        }
+
         try {
             this.close();
-        } catch {}
+        } catch (e) {
+            console.error("WebSocketClient: error during disconnect", e);
+        }
+
         this.socket = undefined;
+        this.subscriptions.clear();
+        this.lastSubscriptionId = -1;
     }
 }
