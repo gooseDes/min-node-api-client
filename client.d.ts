@@ -1,4 +1,4 @@
-import { ApiClientOptions, AttachImageResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
+import { ApiClientOptions, AttachImageResult, GetUserInfoConfig, GetUserInfoResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
 import { WebSocketClient } from "./websocket";
 export declare class ApiClient {
     private url;
@@ -12,4 +12,10 @@ export declare class ApiClient {
     attachImage(token: string, image: Image): Promise<AttachImageResult>;
     uploadAvatar(token: string, image: Image): Promise<UploadAvatarResult>;
     initSocket(token: string): void;
+    closeSocket(): void;
+    resetSocket(): void;
+    /**
+     * Requires socket
+     */
+    getUserInfo(config: GetUserInfoConfig): Promise<GetUserInfoResult>;
 }

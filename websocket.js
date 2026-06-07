@@ -17,11 +17,32 @@ export class WebSocketClient {
         this.url = url;
     }
     init(token) {
-        this.socket = io(this.url, { auth: { token } });
+        const isTestEnv = process.env.NODE_ENV === "test";
+        this.socket = io(this.url, {
+            auth: { token },
+            ...(isTestEnv
+                ? { transports: ["websocket"], reconnection: false, forceNew: true }
+                : {}),
+        });
+        this.connectionPromise = new Promise((resolve, reject) => {
+            this.resolveConnection = resolve;
+            this.rejectConnection = reject;
+        });
+        this.socket.on("connect", () => {
+            var _a;
+            (_a = this.resolveConnection) === null || _a === void 0 ? void 0 : _a.call(this);
+        });
+        this.socket.on("connect_error", error => {
+            var _a;
+            (_a = this.rejectConnection) === null || _a === void 0 ? void 0 : _a.call(this, error);
+        });
     }
     async waitForSocket() {
         while (!this.socket) {
             await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        if (!this.socket.connected) {
+            await this.connectionPromise;
         }
     }
     subscribe(event, callback, options) {
@@ -72,6 +93,9 @@ export class WebSocketClient {
         if (this.socket) {
             this.socket.disconnect();
         }
+        this.connectionPromise = undefined;
+        this.resolveConnection = undefined;
+        this.rejectConnection = undefined;
     }
     reset() {
         for (const subscription of this.subscriptions.values()) {
@@ -85,6 +109,6 @@ export class WebSocketClient {
         }
         this.socket = undefined;
         this.subscriptions.clear();
-        this.lastSubscriptionId = -1;
+        this.lastSubscriptionId = 0;
     }
 }

@@ -94,4 +94,32 @@ export class ApiClient {
     initSocket(token) {
         this.socket.init(token);
     }
+    closeSocket() {
+        this.socket.close();
+    }
+    resetSocket() {
+        this.socket.reset();
+    }
+    /**
+     * Requires socket
+     */
+    async getUserInfo(config) {
+        return new Promise(resolve => {
+            let successSub;
+            let errorSub;
+            const cleanup = () => {
+                successSub.remove();
+                errorSub.remove();
+            };
+            successSub = this.socket.subscribe("userInfo", data => {
+                cleanup();
+                resolve({ success: true, id: data.user.id, username: data.user.name, avatar: data.user.avatar });
+            }, { once: true });
+            errorSub = this.socket.subscribe("error", data => {
+                cleanup();
+                resolve({ success: false, message: data.msg });
+            }, { once: true });
+            this.socket.emit("getUserInfo", "username" in config ? { name: config.username } : { id: config.id });
+        });
+    }
 }

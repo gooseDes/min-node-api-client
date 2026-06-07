@@ -12,6 +12,9 @@ export declare class WebSocketClient {
     private url;
     subscriptions: Map<number, Subscription>;
     private lastSubscriptionId;
+    private connectionPromise;
+    private resolveConnection;
+    private rejectConnection;
     constructor(url: string);
     init(token: string): void;
     waitForSocket(): Promise<void>;
