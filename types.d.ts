@@ -1,10 +1,15 @@
 export interface ApiClientOptions {
     url: string;
 }
-export interface UserData {
+export interface AuthUserData {
     id: number;
     username: string;
     email: string;
+}
+export interface UserData {
+    id: number;
+    username: string;
+    avatar: string;
 }
 export type RNFile = {
     uri: string;
@@ -23,7 +28,7 @@ export type HttpRequestOptions = {
 export type LoginResult = Failed | {
     success: true;
     token: string;
-    user: UserData;
+    user: AuthUserData;
 };
 export type VerifyTokenResult = Failed | {
     success: true;
@@ -54,7 +59,5 @@ export type GetUserInfoConfig = {
 };
 export type GetUserInfoResult = Failed | {
     success: true;
-    id: number;
-    username: string;
-    avatar: string;
+    user: UserData;
 };
