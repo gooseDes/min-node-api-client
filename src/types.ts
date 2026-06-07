@@ -2,10 +2,16 @@ export interface ApiClientOptions {
     url: string;
 }
 
-export interface UserData {
+export interface AuthUserData {
     id: number;
     username: string;
     email: string;
+}
+
+export interface UserData {
+    id: number;
+    username: string;
+    avatar: string;
 }
 
 export type RNFile = {
@@ -33,7 +39,7 @@ export type LoginResult =
     | {
           success: true;
           token: string;
-          user: UserData;
+          user: AuthUserData;
       };
 
 export type VerifyTokenResult =
@@ -118,7 +124,5 @@ export type GetUserInfoResult =
     | Failed
     | {
           success: true;
-          id: number;
-          username: string;
-          avatar: string;
+          user: UserData;
       };

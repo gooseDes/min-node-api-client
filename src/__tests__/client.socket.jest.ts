@@ -14,10 +14,10 @@ describe("ApiClient.getUserInfo", () => {
     });
     it("returns success:true and user info on success", async () => {
         const result = await client.getUserInfo({ id: 1 });
-        expect(result).toEqual({ success: true, id: 1, username: "user", avatar: "image" });
+        expect(result).toEqual({ success: true, user: { id: 1, username: "user", avatar: "image" } });
 
         const result2 = await client.getUserInfo({ username: "user" });
-        expect(result2).toEqual({ success: true, id: 1, username: "user", avatar: "image" });
+        expect(result2).toEqual({ success: true, user: { id: 1, username: "user", avatar: "image" } });
     });
 
     it("returns success:false on failure", async () => {

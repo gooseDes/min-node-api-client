@@ -22,13 +22,13 @@ export class ApiClient {
     }
 
     async jsonHttpRequest(endpoint: string, data: any): Promise<JsonHttpRequestResult> {
-        const responce = await fetch(`${this.url}/${endpoint}`, {
+        const response = await fetch(`${this.url}/${endpoint}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
-        const json = await responce.json();
-        if (responce.ok) {
+        const json = await response.json();
+        if (response.ok) {
             return { success: true, data: json };
         } else {
             return { success: false, message: json.msg };
@@ -37,13 +37,13 @@ export class ApiClient {
 
     async httpRequest(endpoint: string, options?: HttpRequestOptions): Promise<JsonHttpRequestResult> {
         const { token, body } = options ?? {};
-        const responce = await fetch(`${this.url}/${endpoint}`, {
+        const response = await fetch(`${this.url}/${endpoint}`, {
             method: "POST",
             ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
             body,
         });
-        const json = await responce.json();
-        if (responce.ok) {
+        const json = await response.json();
+        if (response.ok) {
             return { success: true, data: json };
         } else {
             return { success: false, message: json.msg };
@@ -140,7 +140,7 @@ export class ApiClient {
                 "userInfo",
                 data => {
                     cleanup();
-                    resolve({ success: true, id: data.user.id, username: data.user.name, avatar: data.user.avatar });
+                    resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } });
                 },
                 { once: true },
             );
