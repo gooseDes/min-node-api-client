@@ -1,6 +1,8 @@
 import {
     ApiClientOptions,
     AttachImageResult,
+    GetUserInfoConfig,
+    GetUserInfoResult,
     HttpRequestOptions,
     Image,
     JsonHttpRequestResult,
@@ -8,7 +10,7 @@ import {
     UploadAvatarResult,
     VerifyTokenResult,
 } from "./types";
-import { WebSocketClient } from "./websocket";
+import { Subscription, WebSocketClient } from "./websocket";
 
 export class ApiClient {
     private url: string;
@@ -111,5 +113,48 @@ export class ApiClient {
 
     initSocket(token: string) {
         this.socket.init(token);
+    }
+
+    closeSocket() {
+        this.socket.close();
+    }
+
+    resetSocket() {
+        this.socket.reset();
+    }
+
+    /**
+     * Requires socket
+     */
+    async getUserInfo(config: GetUserInfoConfig): Promise<GetUserInfoResult> {
+        return new Promise<GetUserInfoResult>(resolve => {
+            let successSub: Subscription;
+            let errorSub: Subscription;
+
+            const cleanup = () => {
+                successSub.remove();
+                errorSub.remove();
+            };
+
+            successSub = this.socket.subscribe(
+                "userInfo",
+                data => {
+                    cleanup();
+                    resolve({ success: true, id: data.user.id, username: data.user.name, avatar: data.user.avatar });
+                },
+                { once: true },
+            );
+
+            errorSub = this.socket.subscribe(
+                "error",
+                data => {
+                    cleanup();
+                    resolve({ success: false, message: data.msg });
+                },
+                { once: true },
+            );
+
+            this.socket.emit("getUserInfo", "username" in config ? { name: config.username } : { id: config.id });
+        });
     }
 }

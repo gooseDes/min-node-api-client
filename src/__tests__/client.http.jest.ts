@@ -1,6 +1,6 @@
 import { testUrl } from "@/__mocks__/handlers";
-import { server } from "@/__mocks__/server";
 import { ApiClient } from "@/client";
+import { server } from "@/jest.setup";
 import { describe, expect, it } from "@jest/globals";
 import { http } from "msw";
 

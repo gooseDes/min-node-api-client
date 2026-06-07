@@ -16,6 +16,11 @@ export type RNFile = {
 
 export type Image = RNFile | File;
 
+export type Failed = {
+    success: false;
+    message: string;
+};
+
 // Http types
 
 export type HttpRequestOptions = {
@@ -24,10 +29,7 @@ export type HttpRequestOptions = {
 };
 
 export type LoginResult =
-    | {
-          success: false;
-          message: string;
-      }
+    | Failed
     | {
           success: true;
           token: string;
@@ -35,40 +37,28 @@ export type LoginResult =
       };
 
 export type VerifyTokenResult =
-    | {
-          success: false;
-          message: string;
-      }
+    | Failed
     | {
           success: true;
           is_valid: boolean;
       };
 
 export type JsonHttpRequestResult =
-    | {
-          success: false;
-          message: string;
-      }
+    | Failed
     | {
           success: true;
           data: any;
       };
 
 export type AttachImageResult =
-    | {
-          success: false;
-          message: string;
-      }
+    | Failed
     | {
           success: true;
           urls: string[];
       };
 
 export type UploadAvatarResult =
-    | {
-          success: false;
-          message: string;
-      }
+    | Failed
     | {
           success: true;
           url: string;
@@ -115,3 +105,20 @@ export type WebSocketEmitEvent =
 export type WebSocketSubscribeOptions = {
     once?: boolean;
 };
+
+export type GetUserInfoConfig =
+    | {
+          id: number;
+      }
+    | {
+          username: string;
+      };
+
+export type GetUserInfoResult =
+    | Failed
+    | {
+          success: true;
+          id: number;
+          username: string;
+          avatar: string;
+      };

@@ -24,18 +24,44 @@ export class WebSocketClient {
     private url: string;
     public subscriptions = new Map<number, Subscription>();
     private lastSubscriptionId: number = 0;
+    private connectionPromise: Promise<void> | undefined;
+    private resolveConnection: (() => void) | undefined;
+    private rejectConnection: ((reason?: any) => void) | undefined;
 
     constructor(url: string) {
         this.url = url;
     }
 
     init(token: string): void {
-        this.socket = io(this.url, { auth: { token } });
+        const isTestEnv = process.env.NODE_ENV === "test";
+        this.socket = io(this.url, {
+            auth: { token },
+            ...(isTestEnv
+                ? { transports: ["websocket"], reconnection: false, forceNew: true }
+                : {}),
+        });
+
+        this.connectionPromise = new Promise((resolve, reject) => {
+            this.resolveConnection = resolve;
+            this.rejectConnection = reject;
+        });
+
+        this.socket.on("connect", () => {
+            this.resolveConnection?.();
+        });
+
+        this.socket.on("connect_error", error => {
+            this.rejectConnection?.(error);
+        });
     }
 
     async waitForSocket(): Promise<void> {
         while (!this.socket) {
             await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        if (!this.socket.connected) {
+            await this.connectionPromise;
         }
     }
 
@@ -89,6 +115,9 @@ export class WebSocketClient {
         if (this.socket) {
             this.socket.disconnect();
         }
+        this.connectionPromise = undefined;
+        this.resolveConnection = undefined;
+        this.rejectConnection = undefined;
     }
 
     reset(): void {
@@ -104,6 +133,6 @@ export class WebSocketClient {
 
         this.socket = undefined;
         this.subscriptions.clear();
-        this.lastSubscriptionId = -1;
+        this.lastSubscriptionId = 0;
     }
 }

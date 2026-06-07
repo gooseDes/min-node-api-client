@@ -1,5 +1,5 @@
-import { http, HttpResponse, ws } from "msw";
 import { toSocketIo } from "@mswjs/socket.io-binding";
+import { http, HttpResponse, ws } from "msw";
 
 export const testUrl = "https://api.example.com";
 
@@ -39,12 +39,13 @@ export const httpHandlers = [
     }),
 ];
 
-export const wsChannel = ws.link(`${testUrl}`);
-wsChannel.addEventListener("connection", connection => {
+const wsChannel = ws.link("*");
+export const wsHandler = wsChannel.addEventListener("connection", connection => {
     const io = toSocketIo(connection);
 
     // msg → emits "message"
     io.server.on("msg", (data: any) => {
+        console.log("msg", data);
         if (!data || !data.text || !data.chat)
             return io.client.emit("error", "Message is empty or some required arguments are missing");
         io.client.emit("message", {
@@ -114,8 +115,9 @@ wsChannel.addEventListener("connection", connection => {
     // getUserInfo → emits "userInfo"
     io.server.on("getUserInfo", (data: any) => {
         if (!data || (!data.id && !data.name)) return io.client.emit("error", { msg: "No data provided" });
+        if (data?.name !== "user" && data?.id !== 1) return io.client.emit("error", { msg: "No such user" });
         io.client.emit("userInfo", {
-            user: { id: 1, name: "author", avatar: "image" },
+            user: { id: 1, name: "user", avatar: "image" },
         });
     });
 
