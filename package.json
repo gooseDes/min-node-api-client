@@ -19,6 +19,16 @@
     "url": "https://github.com/gooseDes/min-node-api-client/issues"
   },
   "homepage": "https://github.com/gooseDes/min-node-api-client#readme",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./utils": {
+      "types": "./utils.d.ts",
+      "import": "./utils.js"
+    }
+  },
   "allowScripts": {
     "unrs-resolver@1.12.2": true,
     "msw@2.14.6": true

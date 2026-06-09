@@ -1,4 +1,4 @@
-import { ApiClientOptions, AttachImageResult, GetUserInfoConfig, GetUserInfoResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
+import { ApiClientOptions, AttachImageResult, FetchChatMessagesConfig, FetchChatMessagesResult, FetchChatsResult, FetchMessageInfoConfig, FetchMessageInfoResult, FetchUserInfoConfig, FetchUserInfoResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
 import { WebSocketClient } from "./websocket";
 export declare class ApiClient {
     private url;
@@ -14,8 +14,21 @@ export declare class ApiClient {
     initSocket(token: string): void;
     closeSocket(): void;
     resetSocket(): void;
+    private socketFetchBase;
     /**
      * Requires socket
      */
-    getUserInfo(config: GetUserInfoConfig): Promise<GetUserInfoResult>;
+    fetchUser(config: FetchUserInfoConfig): Promise<FetchUserInfoResult>;
+    /**
+     * Requires socket
+     */
+    fetchMessage(config: FetchMessageInfoConfig): Promise<FetchMessageInfoResult>;
+    /**
+     * Requires socket
+     */
+    fetchChats(): Promise<FetchChatsResult>;
+    /**
+     * Requires socket
+     */
+    fetchChatMessages(config: FetchChatMessagesConfig): Promise<FetchChatMessagesResult>;
 }

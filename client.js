@@ -1,3 +1,4 @@
+import { toDate } from "./utils";
 import { WebSocketClient } from "./websocket";
 export class ApiClient {
     constructor(options) {
@@ -100,26 +101,80 @@ export class ApiClient {
     resetSocket() {
         this.socket.reset();
     }
+    socketFetchBase(emitEvent, event, data, successCallback, errorCallback) {
+        let successSub;
+        let errorSub;
+        const cleanup = () => {
+            successSub.remove();
+            errorSub.remove();
+        };
+        successSub = this.socket.subscribe(event, data => {
+            cleanup();
+            successCallback(data);
+        }, { once: true });
+        errorSub = this.socket.subscribe("error", data => {
+            cleanup();
+            errorCallback(data);
+        }, { once: true });
+        this.socket.emit(emitEvent, data);
+    }
     /**
      * Requires socket
      */
-    async getUserInfo(config) {
+    async fetchUser(config) {
         return new Promise(resolve => {
-            let successSub;
-            let errorSub;
-            const cleanup = () => {
-                successSub.remove();
-                errorSub.remove();
-            };
-            successSub = this.socket.subscribe("userInfo", data => {
-                cleanup();
-                resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } });
-            }, { once: true });
-            errorSub = this.socket.subscribe("error", data => {
-                cleanup();
-                resolve({ success: false, message: data.msg });
-            }, { once: true });
-            this.socket.emit("getUserInfo", "username" in config ? { name: config.username } : { id: config.id });
+            this.socketFetchBase("getUserInfo", "userInfo", "username" in config ? { name: config.username } : { id: config.id }, data => resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async fetchMessage(config) {
+        return new Promise(resolve => {
+            this.socketFetchBase("getMessage", "requestedMessage", { messageId: config.id }, data => resolve({
+                success: true,
+                message: {
+                    id: data.message.id,
+                    content: data.message.content,
+                    senderId: data.message.senderId,
+                    chatId: data.message.chatId,
+                    sentAt: toDate(data.message.sentAt),
+                    isSeen: data.message.seen,
+                    seenAt: toDate(data.message.seenAt),
+                },
+            }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async fetchChats() {
+        return new Promise(resolve => {
+            this.socketFetchBase("getChats", "chats", {}, data => resolve({ success: true, chats: data.chats }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async fetchChatMessages(config) {
+        return new Promise(resolve => {
+            this.socketFetchBase("getChatHistory", "history", { chat: config.id }, data => resolve({
+                success: true,
+                messages: data.messages.map((m) => ({
+                    id: m.id,
+                    chatId: m.chat_id,
+                    senderId: m.author_id,
+                    content: m.text,
+                    sentAt: toDate(m.sent_at),
+                    isSeen: m.seen,
+                    seenAt: toDate(m.seen_at),
+                    sender: {
+                        id: m.author_id,
+                        username: m.author,
+                        avatar: m.author_avatar,
+                    },
+                })),
+            }), data => resolve({ success: false, message: data.msg }));
         });
     }
 }

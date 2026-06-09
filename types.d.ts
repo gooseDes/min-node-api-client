@@ -11,6 +11,15 @@ export interface UserData {
     username: string;
     avatar: string;
 }
+export interface MessageData {
+    id: number;
+    content: string;
+    senderId: number;
+    chatId: number;
+    sentAt: Date;
+    isSeen: boolean;
+    seenAt: Date;
+}
 export type RNFile = {
     uri: string;
     name: string;
@@ -52,12 +61,37 @@ export type WebSocketEmitEvent = "msg" | "getChatHistory" | "getName" | "createC
 export type WebSocketSubscribeOptions = {
     once?: boolean;
 };
-export type GetUserInfoConfig = {
+export type FetchUserInfoConfig = {
     id: number;
 } | {
     username: string;
 };
-export type GetUserInfoResult = Failed | {
+export type FetchUserInfoResult = Failed | {
     success: true;
     user: UserData;
+};
+export type FetchMessageInfoConfig = {
+    id: number;
+};
+export type FetchMessageInfoResult = Failed | {
+    success: true;
+    message: MessageData;
+};
+export type FetchChatsResult = Failed | {
+    success: true;
+    chats: {
+        id: number;
+        type: "group" | "private";
+        name: string;
+        participants: UserData[];
+    }[];
+};
+export type FetchChatMessagesConfig = {
+    id: number;
+};
+export type FetchChatMessagesResult = Failed | {
+    success: true;
+    messages: (MessageData & {
+        sender: UserData;
+    })[];
 };
