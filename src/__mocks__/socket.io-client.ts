@@ -6,7 +6,10 @@ class MockSocket {
     public connected = false;
     private listeners: Listeners = new Map();
 
-    constructor(public url: string, public opts: any) {
+    constructor(
+        public url: string,
+        public opts: any,
+    ) {
         queueMicrotask(() => {
             this.connected = true;
             this.emitEvent("connect");
@@ -31,7 +34,10 @@ class MockSocket {
     off(event: string, callback: Listener) {
         const current = this.listeners.get(event);
         if (!current) return this;
-        this.listeners.set(event, current.filter(listener => listener !== callback));
+        this.listeners.set(
+            event,
+            current.filter(listener => listener !== callback),
+        );
         return this;
     }
 
@@ -67,6 +73,75 @@ class MockSocket {
                 }
                 this.emit("userInfo", {
                     user: { id: 1, name: "user", avatar: "image" },
+                });
+            });
+            return this;
+        }
+
+        if (event === "getMessage") {
+            queueMicrotask(() => {
+                if (!data || !data.messageId) {
+                    this.emit("error", { msg: "messageId is required" });
+                    return;
+                }
+                if (data.messageId !== 1 && data.messageId !== 2) {
+                    this.emit("error", { msg: "Message not found" });
+                    return;
+                }
+                if (data.messageId === 2) {
+                    this.emit("error", { msg: "You are not in this chat" });
+                    return;
+                }
+                this.emit("requestedMessage", {
+                    message: {
+                        id: 1,
+                        content: "Hello",
+                        senderId: 1,
+                        chatId: 1,
+                        sentAt: 1000,
+                        seen: false,
+                        seenAt: 1000,
+                    },
+                });
+            });
+            return this;
+        }
+
+        if (event === "getChats") {
+            queueMicrotask(() => {
+                this.emit("chats", {
+                    chats: [
+                        {
+                            id: 1,
+                            type: "private",
+                            name: "someone",
+                            participants: [
+                                { id: 1, name: "user", avatar: "image" },
+                                { id: 2, name: "someone", avatar: "image" },
+                            ],
+                        },
+                    ],
+                });
+            });
+            return this;
+        }
+
+        if (event === "getChatHistory") {
+            queueMicrotask(() => {
+                this.emit("history", {
+                    messages: [
+                        {
+                            id: 1,
+                            chat_id: 1,
+                            author_id: 1,
+                            author_avatar: "image",
+                            author: "someone",
+                            text: "Hello",
+                            sent_at: 1000,
+                            seen: false,
+                            seen_at: 1000,
+                        },
+                    ],
                 });
             });
             return this;

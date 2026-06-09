@@ -25,6 +25,16 @@
         "url": "https://github.com/gooseDes/min-node-api-client/issues"
     },
     "homepage": "https://github.com/gooseDes/min-node-api-client#readme",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./utils": {
+            "types": "./dist/utils.d.ts",
+            "import": "./dist/utils.js"
+        }
+    },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@mswjs/socket.io-binding": "^0.2.0",

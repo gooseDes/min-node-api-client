@@ -14,6 +14,16 @@ export interface UserData {
     avatar: string;
 }
 
+export interface MessageData {
+    id: number;
+    content: string;
+    senderId: number;
+    chatId: number;
+    sentAt: Date;
+    isSeen: boolean;
+    seenAt: Date;
+}
+
 export type RNFile = {
     uri: string;
     name: string;
@@ -112,7 +122,7 @@ export type WebSocketSubscribeOptions = {
     once?: boolean;
 };
 
-export type GetUserInfoConfig =
+export type FetchUserInfoConfig =
     | {
           id: number;
       }
@@ -120,9 +130,43 @@ export type GetUserInfoConfig =
           username: string;
       };
 
-export type GetUserInfoResult =
+export type FetchUserInfoResult =
     | Failed
     | {
           success: true;
           user: UserData;
+      };
+
+export type FetchMessageInfoConfig = {
+    id: number;
+};
+
+export type FetchMessageInfoResult =
+    | Failed
+    | {
+          success: true;
+          message: MessageData;
+      };
+
+export type FetchChatsResult =
+    | Failed
+    | {
+          success: true;
+          chats: {
+              id: number;
+              type: "group" | "private";
+              name: string;
+              participants: UserData[];
+          }[];
+      };
+
+export type FetchChatMessagesConfig = {
+    id: number;
+};
+
+export type FetchChatMessagesResult =
+    | Failed
+    | {
+          success: true;
+          messages: (MessageData & { sender: UserData })[];
       };

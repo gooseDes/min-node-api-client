@@ -1,5 +1,4 @@
-import { toSocketIo } from "@mswjs/socket.io-binding";
-import { http, HttpResponse, ws } from "msw";
+import { http, HttpResponse } from "msw";
 
 export const testUrl = "https://api.example.com";
 
@@ -39,7 +38,7 @@ export const httpHandlers = [
     }),
 ];
 
-const wsChannel = ws.link("*");
+/*
 export const wsHandler = wsChannel.addEventListener("connection", connection => {
     const io = toSocketIo(connection);
 
@@ -163,3 +162,4 @@ export const wsHandler = wsChannel.addEventListener("connection", connection => 
         });
     });
 });
+ */
