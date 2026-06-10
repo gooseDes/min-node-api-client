@@ -118,6 +118,14 @@ export class ApiClient {
         }, { once: true });
         this.socket.emit(emitEvent, data);
     }
+    socketFetchBaseNoError(emitEvent, event, data, callback) {
+        let successSub;
+        successSub = this.socket.subscribe(event, data => {
+            successSub.remove();
+            callback(data);
+        }, { once: true });
+        this.socket.emit(emitEvent, data);
+    }
     /**
      * Requires socket
      */
@@ -175,6 +183,29 @@ export class ApiClient {
                     },
                 })),
             }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async createChat(config) {
+        return new Promise(resolve => {
+            this.socketFetchBaseNoError("createChat", "createChatResult", { nickname: config.targetUsername }, data => {
+                if (data.success) {
+                    resolve({
+                        success: true,
+                        chat: {
+                            id: data.chatId,
+                            name: data.chatName,
+                            type: "private",
+                            participants: data.users.map((u) => ({ id: u.id, username: u.username, avatar: u.avatar })),
+                        },
+                    });
+                }
+                else {
+                    resolve({ success: false, message: data.msg });
+                }
+            });
         });
     }
 }
