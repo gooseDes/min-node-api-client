@@ -147,6 +147,37 @@ class MockSocket {
             return this;
         }
 
+        if (event === "createChat") {
+            queueMicrotask(() => {
+                if (!data || !data.nickname) {
+                    this.emit("createChatResult", {
+                        success: false,
+                        msg: "No data provided",
+                    });
+                    return;
+                }
+
+                if (data.nickname === "user") {
+                    this.emit("createChatResult", {
+                        success: false,
+                        msg: "Cannot create chat with yourself",
+                    });
+                    return;
+                }
+
+                this.emit("createChatResult", {
+                    success: true,
+                    chatId: 1,
+                    chatName: data.nickname,
+                    users: [
+                        { id: 1, username: "user", avatar: "image" },
+                        { id: 2, username: data.nickname, avatar: "image" },
+                    ],
+                });
+            });
+            return this;
+        }
+
         this.emitEvent(event, data);
         return this;
     }

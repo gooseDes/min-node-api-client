@@ -48,7 +48,7 @@ describe("ApiClient.fetchMessage", () => {
         });
     });
 
-    it("returns success:false on failure", async () => {
+    it("returns success:false and error message on failure", async () => {
         const result = await client.fetchMessage({ id: 1488 });
         expect(result).toEqual({ success: false, message: "Message not found" });
 
@@ -99,5 +99,28 @@ describe("ApiClient.fetchChatMessages", () => {
                 },
             ],
         });
+    });
+});
+
+describe("ApiClient.createChat", () => {
+    it("returns success:true and chat data on success", async () => {
+        const result = await client.createChat({ targetUsername: "someone" });
+        expect(result).toEqual({
+            success: true,
+            chat: {
+                id: 1,
+                name: "someone",
+                type: "private",
+                participants: [
+                    { id: 1, username: "user", avatar: "image" },
+                    { id: 2, username: "someone", avatar: "image" },
+                ],
+            },
+        });
+    });
+
+    it("returns success:false and error message on failure", async () => {
+        const result = await client.createChat({ targetUsername: "user" });
+        expect(result).toEqual({ success: false, message: "Cannot create chat with yourself" });
     });
 });

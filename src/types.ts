@@ -24,6 +24,13 @@ export interface MessageData {
     seenAt: Date;
 }
 
+export interface ChatData {
+    id: number;
+    type: "group" | "private";
+    name: string;
+    participants: UserData[];
+}
+
 export type RNFile = {
     uri: string;
     name: string;
@@ -152,12 +159,7 @@ export type FetchChatsResult =
     | Failed
     | {
           success: true;
-          chats: {
-              id: number;
-              type: "group" | "private";
-              name: string;
-              participants: UserData[];
-          }[];
+          chats: ChatData[];
       };
 
 export type FetchChatMessagesConfig = {
@@ -169,4 +171,15 @@ export type FetchChatMessagesResult =
     | {
           success: true;
           messages: (MessageData & { sender: UserData })[];
+      };
+
+export type CreateChatConfig = {
+    targetUsername: string;
+};
+
+export type CreateChatResult =
+    | Failed
+    | {
+          success: true;
+          chat: ChatData;
       };

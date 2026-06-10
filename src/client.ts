@@ -1,6 +1,8 @@
 import {
     ApiClientOptions,
     AttachImageResult,
+    CreateChatConfig,
+    CreateChatResult,
     FetchChatMessagesConfig,
     FetchChatMessagesResult,
     FetchChatsResult,
@@ -167,6 +169,26 @@ export class ApiClient {
         this.socket.emit(emitEvent, data);
     }
 
+    private socketFetchBaseNoError(
+        emitEvent: WebSocketEmitEvent,
+        event: WebSocketEvent,
+        data: any,
+        callback: (data: any) => void,
+    ): void {
+        let successSub: Subscription;
+
+        successSub = this.socket.subscribe(
+            event,
+            data => {
+                successSub.remove();
+                callback(data);
+            },
+            { once: true },
+        );
+
+        this.socket.emit(emitEvent, data);
+    }
+
     /**
      * Requires socket
      */
@@ -254,6 +276,29 @@ export class ApiClient {
                     }),
                 data => resolve({ success: false, message: data.msg }),
             );
+        });
+    }
+
+    /**
+     * Requires socket
+     */
+    async createChat(config: CreateChatConfig): Promise<CreateChatResult> {
+        return new Promise<CreateChatResult>(resolve => {
+            this.socketFetchBaseNoError("createChat", "createChatResult", { nickname: config.targetUsername }, data => {
+                if (data.success) {
+                    resolve({
+                        success: true,
+                        chat: {
+                            id: data.chatId,
+                            name: data.chatName,
+                            type: "private",
+                            participants: data.users.map((u: any) => ({ id: u.id, username: u.username, avatar: u.avatar })),
+                        },
+                    });
+                } else {
+                    resolve({ success: false, message: data.msg });
+                }
+            });
         });
     }
 }
