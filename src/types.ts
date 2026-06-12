@@ -21,7 +21,11 @@ export interface MessageData {
     chatId: number;
     sentAt: Date;
     isSeen: boolean;
-    seenAt: Date;
+    seenAt: Date | null;
+}
+
+export interface MessageDataWithSender extends MessageData {
+    sender: UserData;
 }
 
 export interface ChatData {
@@ -106,7 +110,10 @@ export type WebSocketEvent =
     | "customEmojis"
     | "joinedVoice"
     | "turnUrls"
-    | "requestedMessage";
+    | "requestedMessage"
+    | "messageSent"
+    | "messageDeleted"
+    | "fcmTokenAdded";
 
 export type WebSocketEmitEvent =
     | "msg"
@@ -131,7 +138,7 @@ export type WebSocketSubscribeOptions = {
 
 export type FetchUserInfoConfig =
     | {
-          id: number;
+          userId: number;
       }
     | {
           username: string;
@@ -145,7 +152,7 @@ export type FetchUserInfoResult =
       };
 
 export type FetchMessageInfoConfig = {
-    id: number;
+    messageId: number;
 };
 
 export type FetchMessageInfoResult =
@@ -163,14 +170,14 @@ export type FetchChatsResult =
       };
 
 export type FetchChatMessagesConfig = {
-    id: number;
+    chatId: number;
 };
 
 export type FetchChatMessagesResult =
     | Failed
     | {
           success: true;
-          messages: (MessageData & { sender: UserData })[];
+          messages: MessageDataWithSender[];
       };
 
 export type CreateChatConfig = {
@@ -182,4 +189,35 @@ export type CreateChatResult =
     | {
           success: true;
           chat: ChatData;
+      };
+
+export type SendMessageConfig = {
+    chatId: number;
+    content: string;
+};
+
+export type SendMessageResult =
+    | Failed
+    | {
+          success: true;
+      };
+
+export type DeleteMessageConfig = {
+    messageId: number;
+};
+
+export type DeleteMessageResult =
+    | Failed
+    | {
+          success: true;
+      };
+
+export type LinkFcmTokenConfig = {
+    token: string;
+};
+
+export type LinkFcmTokenResult =
+    | Failed
+    | {
+          success: true;
       };

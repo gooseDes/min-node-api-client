@@ -45,18 +45,23 @@ class MockSocket {
         if (event === "msg") {
             queueMicrotask(() => {
                 if (!data || !data.text || !data.chat) {
-                    this.emit("error", "Message is empty or some required arguments are missing");
-                } else {
-                    this.emit("message", {
-                        id: 1,
-                        text: data.text,
-                        author_id: 1,
-                        author_avatar: "image",
-                        author: "author",
-                        chat: data.chat,
-                        sent_at: 1000,
-                    });
+                    this.emitEvent("error", { msg: "No data provided" });
+                    return;
                 }
+                if (data.chat !== 1) {
+                    this.emitEvent("error", { msg: "You are not in this chat" });
+                    return;
+                }
+                this.emit("message", {
+                    id: 1,
+                    text: data.text,
+                    author_id: 1,
+                    author_avatar: "image",
+                    author: "user",
+                    chat: data.chat,
+                    sent_at: 1000,
+                });
+                this.emitEvent("messageSent", {});
             });
             return this;
         }
@@ -174,6 +179,37 @@ class MockSocket {
                         { id: 2, username: data.nickname, avatar: "image" },
                     ],
                 });
+            });
+            return this;
+        }
+
+        if (event === "addFcmToken") {
+            queueMicrotask(() => {
+                if (!data || !data.token) {
+                    this.emit("error", { msg: "No data provided" });
+                    return;
+                }
+                if (data.token === "old_token") {
+                    this.emit("error", { msg: "Token already exists" });
+                    return;
+                }
+                this.emit("fcmTokenAdded", {});
+            });
+            return this;
+        }
+
+        if (event === "deleteMessage") {
+            queueMicrotask(() => {
+                if (!data || !data.message) {
+                    this.emit("error", { msg: "No data provided" });
+                    return;
+                }
+                if (data.message !== 1) {
+                    this.emit("error", { msg: "Message not found" });
+                    return;
+                }
+                this.emitEvent("deleteMessage", { message: data.message });
+                this.emit("messageDeleted", {});
             });
             return this;
         }

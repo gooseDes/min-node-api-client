@@ -3,6 +3,8 @@ import {
     AttachImageResult,
     CreateChatConfig,
     CreateChatResult,
+    DeleteMessageConfig,
+    DeleteMessageResult,
     FetchChatMessagesConfig,
     FetchChatMessagesResult,
     FetchChatsResult,
@@ -13,7 +15,12 @@ import {
     HttpRequestOptions,
     Image,
     JsonHttpRequestResult,
+    LinkFcmTokenConfig,
+    LinkFcmTokenResult,
     LoginResult,
+    MessageDataWithSender,
+    SendMessageConfig,
+    SendMessageResult,
     UploadAvatarResult,
     VerifyTokenResult,
     WebSocketEmitEvent,
@@ -197,7 +204,7 @@ export class ApiClient {
             this.socketFetchBase(
                 "getUserInfo",
                 "userInfo",
-                "username" in config ? { name: config.username } : { id: config.id },
+                "username" in config ? { name: config.username } : { id: config.userId },
                 data =>
                     resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }),
                 data => resolve({ success: false, message: data.msg }),
@@ -213,7 +220,7 @@ export class ApiClient {
             this.socketFetchBase(
                 "getMessage",
                 "requestedMessage",
-                { messageId: config.id },
+                { messageId: config.messageId },
                 data =>
                     resolve({
                         success: true,
@@ -255,7 +262,7 @@ export class ApiClient {
             this.socketFetchBase(
                 "getChatHistory",
                 "history",
-                { chat: config.id },
+                { chat: config.chatId },
                 data =>
                     resolve({
                         success: true,
@@ -300,5 +307,75 @@ export class ApiClient {
                 }
             });
         });
+    }
+
+    /**
+     * Requires socket
+     */
+    async sendMessage(config: SendMessageConfig): Promise<SendMessageResult> {
+        return new Promise<SendMessageResult>(resolve => {
+            this.socketFetchBase(
+                "msg",
+                "messageSent",
+                { chat: config.chatId, text: config.content },
+                _ => resolve({ success: true }),
+                data => resolve({ success: false, message: data.msg }),
+            );
+        });
+    }
+
+    /**
+     * Requires socket
+     */
+    async deleteMessage(config: DeleteMessageConfig): Promise<DeleteMessageResult> {
+        return new Promise<DeleteMessageResult>(resolve => {
+            this.socketFetchBase(
+                "deleteMessage",
+                "messageDeleted",
+                { message: config.messageId },
+                _ => resolve({ success: true }),
+                data => resolve({ success: false, message: data.msg }),
+            );
+        });
+    }
+
+    /**
+     * Requires socket
+     */
+    async linkFcmToken(config: LinkFcmTokenConfig): Promise<LinkFcmTokenResult> {
+        return new Promise<LinkFcmTokenResult>(resolve => {
+            this.socketFetchBase(
+                "addFcmToken",
+                "fcmTokenAdded",
+                { token: config.token },
+                _ => resolve({ success: true }),
+                data => resolve({ success: false, message: data.msg }),
+            );
+        });
+    }
+
+    /**
+     * Requires socket
+     */
+    subscribeToMessages(callback: (message: MessageDataWithSender) => void): Subscription {
+        return this.socket.subscribe("message", (data: any) =>
+            callback({
+                id: data.id,
+                content: data.text,
+                senderId: data.author_id,
+                chatId: data.chat,
+                sentAt: toDate(data.sent_at),
+                isSeen: false,
+                seenAt: null,
+                sender: { id: data.author_id, username: data.author, avatar: data.author_avatar },
+            }),
+        );
+    }
+
+    /**
+     * Requires socket
+     */
+    subscribeToDeletingMessages(callback: (id: number) => void): Subscription {
+        return this.socket.subscribe("deleteMessage", (data: any) => callback(data.message));
     }
 }

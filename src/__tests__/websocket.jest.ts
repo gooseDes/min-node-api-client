@@ -18,7 +18,7 @@ describe("WebSocketClient", () => {
                         text: "text",
                         author_id: 1,
                         author_avatar: "image",
-                        author: "author",
+                        author: "user",
                         chat: 1,
                         sent_at: 1000,
                     });
@@ -33,11 +33,7 @@ describe("WebSocketClient", () => {
         socket.emit("msg", {
             id: 1,
             text: "text",
-            author_id: 1,
-            author_avatar: "image",
-            author: "author",
             chat: 1,
-            sent_at: 1000,
         });
     });
 });
