@@ -18,7 +18,10 @@ export interface MessageData {
     chatId: number;
     sentAt: Date;
     isSeen: boolean;
-    seenAt: Date;
+    seenAt: Date | null;
+}
+export interface MessageDataWithSender extends MessageData {
+    sender: UserData;
 }
 export interface ChatData {
     id: number;
@@ -62,13 +65,13 @@ export type UploadAvatarResult = Failed | {
     url: string;
     avatar: string;
 };
-export type WebSocketEvent = "connect" | "disconnect" | "connect_error" | "error" | "message" | "deleteMessage" | "history" | "username" | "createChatResult" | "chats" | "userInfo" | "getChatWithResult" | "customEmojis" | "joinedVoice" | "turnUrls" | "requestedMessage";
+export type WebSocketEvent = "connect" | "disconnect" | "connect_error" | "error" | "message" | "deleteMessage" | "history" | "username" | "createChatResult" | "chats" | "userInfo" | "getChatWithResult" | "customEmojis" | "joinedVoice" | "turnUrls" | "requestedMessage" | "messageSent" | "messageDeleted" | "fcmTokenAdded";
 export type WebSocketEmitEvent = "msg" | "getChatHistory" | "getName" | "createChat" | "getChats" | "getUserInfo" | "getChatWith" | "getCustomEmojis" | "seenAll" | "deleteMessage" | "joinVoice" | "voiceAction" | "getTurnUrls" | "addFcmToken" | "getMessage";
 export type WebSocketSubscribeOptions = {
     once?: boolean;
 };
 export type FetchUserInfoConfig = {
-    id: number;
+    userId: number;
 } | {
     username: string;
 };
@@ -77,7 +80,7 @@ export type FetchUserInfoResult = Failed | {
     user: UserData;
 };
 export type FetchMessageInfoConfig = {
-    id: number;
+    messageId: number;
 };
 export type FetchMessageInfoResult = Failed | {
     success: true;
@@ -88,13 +91,11 @@ export type FetchChatsResult = Failed | {
     chats: ChatData[];
 };
 export type FetchChatMessagesConfig = {
-    id: number;
+    chatId: number;
 };
 export type FetchChatMessagesResult = Failed | {
     success: true;
-    messages: (MessageData & {
-        sender: UserData;
-    })[];
+    messages: MessageDataWithSender[];
 };
 export type CreateChatConfig = {
     targetUsername: string;
@@ -102,4 +103,23 @@ export type CreateChatConfig = {
 export type CreateChatResult = Failed | {
     success: true;
     chat: ChatData;
+};
+export type SendMessageConfig = {
+    chatId: number;
+    content: string;
+};
+export type SendMessageResult = Failed | {
+    success: true;
+};
+export type DeleteMessageConfig = {
+    messageId: number;
+};
+export type DeleteMessageResult = Failed | {
+    success: true;
+};
+export type LinkFcmTokenConfig = {
+    token: string;
+};
+export type LinkFcmTokenResult = Failed | {
+    success: true;
 };

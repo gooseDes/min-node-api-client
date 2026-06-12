@@ -1,5 +1,5 @@
-import { ApiClientOptions, AttachImageResult, CreateChatConfig, CreateChatResult, FetchChatMessagesConfig, FetchChatMessagesResult, FetchChatsResult, FetchMessageInfoConfig, FetchMessageInfoResult, FetchUserInfoConfig, FetchUserInfoResult, HttpRequestOptions, Image, JsonHttpRequestResult, LoginResult, UploadAvatarResult, VerifyTokenResult } from "./types";
-import { WebSocketClient } from "./websocket";
+import { ApiClientOptions, AttachImageResult, CreateChatConfig, CreateChatResult, DeleteMessageConfig, DeleteMessageResult, FetchChatMessagesConfig, FetchChatMessagesResult, FetchChatsResult, FetchMessageInfoConfig, FetchMessageInfoResult, FetchUserInfoConfig, FetchUserInfoResult, HttpRequestOptions, Image, JsonHttpRequestResult, LinkFcmTokenConfig, LinkFcmTokenResult, LoginResult, MessageDataWithSender, SendMessageConfig, SendMessageResult, UploadAvatarResult, VerifyTokenResult } from "./types";
+import { Subscription, WebSocketClient } from "./websocket";
 export declare class ApiClient {
     private url;
     socket: WebSocketClient;
@@ -36,4 +36,24 @@ export declare class ApiClient {
      * Requires socket
      */
     createChat(config: CreateChatConfig): Promise<CreateChatResult>;
+    /**
+     * Requires socket
+     */
+    sendMessage(config: SendMessageConfig): Promise<SendMessageResult>;
+    /**
+     * Requires socket
+     */
+    deleteMessage(config: DeleteMessageConfig): Promise<DeleteMessageResult>;
+    /**
+     * Requires socket
+     */
+    linkFcmToken(config: LinkFcmTokenConfig): Promise<LinkFcmTokenResult>;
+    /**
+     * Requires socket
+     */
+    subscribeToMessages(callback: (message: MessageDataWithSender) => void): Subscription;
+    /**
+     * Requires socket
+     */
+    subscribeToDeletingMessages(callback: (id: number) => void): Subscription;
 }

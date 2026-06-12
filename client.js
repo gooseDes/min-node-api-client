@@ -131,7 +131,7 @@ export class ApiClient {
      */
     async fetchUser(config) {
         return new Promise(resolve => {
-            this.socketFetchBase("getUserInfo", "userInfo", "username" in config ? { name: config.username } : { id: config.id }, data => resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }), data => resolve({ success: false, message: data.msg }));
+            this.socketFetchBase("getUserInfo", "userInfo", "username" in config ? { name: config.username } : { id: config.userId }, data => resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }), data => resolve({ success: false, message: data.msg }));
         });
     }
     /**
@@ -139,7 +139,7 @@ export class ApiClient {
      */
     async fetchMessage(config) {
         return new Promise(resolve => {
-            this.socketFetchBase("getMessage", "requestedMessage", { messageId: config.id }, data => resolve({
+            this.socketFetchBase("getMessage", "requestedMessage", { messageId: config.messageId }, data => resolve({
                 success: true,
                 message: {
                     id: data.message.id,
@@ -166,7 +166,7 @@ export class ApiClient {
      */
     async fetchChatMessages(config) {
         return new Promise(resolve => {
-            this.socketFetchBase("getChatHistory", "history", { chat: config.id }, data => resolve({
+            this.socketFetchBase("getChatHistory", "history", { chat: config.chatId }, data => resolve({
                 success: true,
                 messages: data.messages.map((m) => ({
                     id: m.id,
@@ -207,5 +207,50 @@ export class ApiClient {
                 }
             });
         });
+    }
+    /**
+     * Requires socket
+     */
+    async sendMessage(config) {
+        return new Promise(resolve => {
+            this.socketFetchBase("msg", "messageSent", { chat: config.chatId, text: config.content }, _ => resolve({ success: true }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async deleteMessage(config) {
+        return new Promise(resolve => {
+            this.socketFetchBase("deleteMessage", "messageDeleted", { message: config.messageId }, _ => resolve({ success: true }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    async linkFcmToken(config) {
+        return new Promise(resolve => {
+            this.socketFetchBase("addFcmToken", "fcmTokenAdded", { token: config.token }, _ => resolve({ success: true }), data => resolve({ success: false, message: data.msg }));
+        });
+    }
+    /**
+     * Requires socket
+     */
+    subscribeToMessages(callback) {
+        return this.socket.subscribe("message", (data) => callback({
+            id: data.id,
+            content: data.text,
+            senderId: data.author_id,
+            chatId: data.chat,
+            sentAt: toDate(data.sent_at),
+            isSeen: false,
+            seenAt: null,
+            sender: { id: data.author_id, username: data.author, avatar: data.author_avatar },
+        }));
+    }
+    /**
+     * Requires socket
+     */
+    subscribeToDeletingMessages(callback) {
+        return this.socket.subscribe("deleteMessage", (data) => callback(data.message));
     }
 }
