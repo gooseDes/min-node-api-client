@@ -68,8 +68,8 @@ describe("ApiClient.fetchChats", () => {
                     type: "private",
                     name: "someone",
                     participants: [
-                        { id: 1, name: "user", avatar: "image" },
-                        { id: 2, name: "someone", avatar: "image" },
+                        { id: 1, username: "user", avatar: "image" },
+                        { id: 2, username: "someone", avatar: "image" },
                     ],
                 },
             ],

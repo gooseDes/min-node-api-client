@@ -248,7 +248,20 @@ export class ApiClient {
                 "getChats",
                 "chats",
                 {},
-                data => resolve({ success: true, chats: data.chats }),
+                data =>
+                    resolve({
+                        success: true,
+                        chats: data.chats.map((c: any) => ({
+                            id: c.id,
+                            name: c.name,
+                            type: c.type,
+                            participants: c.participants.map((p: any) => ({
+                                id: p.id,
+                                username: p.name,
+                                avatar: p.avatar,
+                            })),
+                        })),
+                    }),
                 data => resolve({ success: false, message: data.msg }),
             );
         });
