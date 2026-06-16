@@ -158,7 +158,19 @@ export class ApiClient {
      */
     async fetchChats() {
         return new Promise(resolve => {
-            this.socketFetchBase("getChats", "chats", {}, data => resolve({ success: true, chats: data.chats }), data => resolve({ success: false, message: data.msg }));
+            this.socketFetchBase("getChats", "chats", {}, data => resolve({
+                success: true,
+                chats: data.chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    participants: c.participants.map((p) => ({
+                        id: p.id,
+                        username: p.name,
+                        avatar: p.avatar,
+                    })),
+                })),
+            }), data => resolve({ success: false, message: data.msg }));
         });
     }
     /**
