@@ -68,15 +68,11 @@ export class ApiClient {
             formData.append("attachments", image);
         }
         else if (image.uri) {
-            // 1. Загружаем данные по uri
-            const response = await fetch(image.uri);
-            // 2. Получаем ArrayBuffer (поддерживается в React Native)
-            const arrayBuffer = await response.arrayBuffer();
-            // 3. Создаём Uint8Array, а из него – Blob с нужным MIME-типом
-            const mimeType = image.type || "application/octet-stream";
-            const blob = new Blob([new Uint8Array(arrayBuffer)], { type: mimeType });
-            // 4. Добавляем в FormData
-            formData.append("attachments", blob, image.name);
+            formData.append("attachments", {
+                uri: image.uri,
+                name: image.name || "image.jpg",
+                type: image.type || "image/jpeg",
+            });
         }
         else {
             throw new Error("Invalid image provided");
