@@ -1,3 +1,5 @@
+import { RNFile } from "./types";
+
 /**
  * Converts iso or timestamp to a Date object.
  * @param timestamp The timestamp to convert.
@@ -39,4 +41,24 @@ export function dateToString(date: Date, format: Intl.LocalesArgument, force24Ho
         }
         return `${date.toLocaleDateString(format, { month: "short", day: "numeric" })}, ${time}`;
     }
+}
+
+/**
+ * Converts RNFile to Blob.
+ * @param image The file to convert.
+ * @returns converted image.
+ */
+export async function RNImageToBlob(image: RNFile): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => {
+            resolve(xhr.response);
+        };
+        xhr.onerror = () => {
+            reject(new Error("Error while converting image to blob"));
+        };
+        xhr.responseType = "blob";
+        xhr.open("GET", image.uri, true);
+        xhr.send(null);
+    });
 }

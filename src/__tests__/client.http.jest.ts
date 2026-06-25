@@ -108,7 +108,7 @@ describe("ApiClient.verifyToken", () => {
 });
 
 describe("ApiClient.attachImage", () => {
-    const image = { uri: "file:///path/to/image.jpg", name: "image.jpg", type: "image/jpeg" };
+    const image = new File(["dummy content"], "test.jpg", { type: "image/jpeg" });
 
     it("returns success:true on successful attachment", async () => {
         const result = await client.attachImage("tok_valid", image);

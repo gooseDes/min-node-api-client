@@ -26,7 +26,7 @@ import {
     WebSocketEmitEvent,
     WebSocketEvent,
 } from "./types";
-import { toDate } from "./utils";
+import { RNImageToBlob, toDate } from "./utils";
 import { Subscription, WebSocketClient } from "./websocket";
 
 export class ApiClient {
@@ -100,12 +100,26 @@ export class ApiClient {
 
     async attachImage(token: string, image: Image): Promise<AttachImageResult> {
         const formData = new FormData();
-        if (image instanceof File) {
+
+        // Web
+        if (typeof File !== "undefined" && image instanceof File) {
             formData.append("attachments", image);
+        }
+        // React Native
+        else if (image && typeof image === "object" && "uri" in image) {
+            try {
+                const blob = await RNImageToBlob(image);
+                formData.append("attachments", blob, image.name);
+            } catch (error) {
+                console.error("Error while converting image:", error);
+                /* @ts-ignore */
+                formData.append("attachments", image);
+            }
         } else {
             /* @ts-ignore */
             formData.append("attachments", image);
         }
+
         const response = await this.httpRequest("attach", { body: formData, token });
         if (!response.success) {
             return { success: false, message: response.message };
@@ -118,8 +132,14 @@ export class ApiClient {
         if (image instanceof File) {
             formData.append("avatar", image);
         } else {
-            /* @ts-ignore */
-            formData.append("avatar", image);
+            try {
+                const blob = await RNImageToBlob(image);
+                formData.append("avatar", blob, image.name);
+            } catch (error) {
+                console.error("Error while converting image:", error);
+                /* @ts-ignore */
+                formData.append("avatar", image);
+            }
         }
         const response = await this.httpRequest("upload-avatar", { body: formData, token });
         if (!response.success) {
