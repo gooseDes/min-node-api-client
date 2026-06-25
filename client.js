@@ -64,13 +64,20 @@ export class ApiClient {
     }
     async attachImage(token, image) {
         const formData = new FormData();
+        let fileData;
         if (image instanceof File) {
-            formData.append("attachments", image);
+            fileData = image;
+        }
+        else if (image.uri) {
+            const response = await fetch(image.uri);
+            const blob = await response.blob();
+            const mimeType = image.type || "application/octet-stream";
+            fileData = new Blob([blob], { type: mimeType });
         }
         else {
-            /* @ts-ignore */
-            formData.append("attachments", image);
+            fileData = image;
         }
+        formData.append("attachments", fileData, image.name);
         const response = await this.httpRequest("attach", { body: formData, token });
         if (!response.success) {
             return { success: false, message: response.message };
