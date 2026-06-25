@@ -1,4 +1,4 @@
-import { toDate } from "./utils";
+import { RNImageToBlob, toDate } from "./utils";
 import { WebSocketClient } from "./websocket";
 export class ApiClient {
     constructor(options) {
@@ -71,18 +71,7 @@ export class ApiClient {
         // React Native
         else if (image && typeof image === "object" && "uri" in image) {
             try {
-                const blob = await new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.onload = () => {
-                        resolve(xhr.response);
-                    };
-                    xhr.onerror = () => {
-                        reject(new Error("Error while converting image to blob"));
-                    };
-                    xhr.responseType = "blob";
-                    xhr.open("GET", image.uri, true);
-                    xhr.send(null);
-                });
+                const blob = await RNImageToBlob(image);
                 formData.append("attachments", blob, image.name);
             }
             catch (error) {
@@ -107,8 +96,15 @@ export class ApiClient {
             formData.append("avatar", image);
         }
         else {
-            /* @ts-ignore */
-            formData.append("avatar", image);
+            try {
+                const blob = await RNImageToBlob(image);
+                formData.append("avatar", blob, image.name);
+            }
+            catch (error) {
+                console.error("Error while converting image:", error);
+                /* @ts-ignore */
+                formData.append("avatar", image);
+            }
         }
         const response = await this.httpRequest("upload-avatar", { body: formData, token });
         if (!response.success) {

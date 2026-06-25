@@ -1,3 +1,4 @@
+import { RNFile } from "./types";
 /**
  * Converts iso or timestamp to a Date object.
  * @param timestamp The timestamp to convert.
@@ -12,3 +13,9 @@ export declare function toDate(time: string | number): Date;
  * @returns The localized string representation of the date.
  */
 export declare function dateToString(date: Date, format: Intl.LocalesArgument, force24Hour: boolean): string;
+/**
+ * Converts RNFile to Blob.
+ * @param image The file to convert.
+ * @returns converted image.
+ */
+export declare function RNImageToBlob(image: RNFile): Promise<Blob>;
