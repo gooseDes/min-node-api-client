@@ -64,20 +64,23 @@ export class ApiClient {
     }
     async attachImage(token, image) {
         const formData = new FormData();
-        let fileData;
         if (image instanceof File) {
-            fileData = image;
+            formData.append("attachments", image);
         }
         else if (image.uri) {
+            // 1. Загружаем данные по uri
             const response = await fetch(image.uri);
-            const blob = await response.blob();
+            // 2. Получаем ArrayBuffer (поддерживается в React Native)
+            const arrayBuffer = await response.arrayBuffer();
+            // 3. Создаём Uint8Array, а из него – Blob с нужным MIME-типом
             const mimeType = image.type || "application/octet-stream";
-            fileData = new Blob([blob], { type: mimeType });
+            const blob = new Blob([new Uint8Array(arrayBuffer)], { type: mimeType });
+            // 4. Добавляем в FormData
+            formData.append("attachments", blob, image.name);
         }
         else {
-            fileData = image;
+            throw new Error("Invalid image provided");
         }
-        formData.append("attachments", fileData, image.name);
         const response = await this.httpRequest("attach", { body: formData, token });
         if (!response.success) {
             return { success: false, message: response.message };
