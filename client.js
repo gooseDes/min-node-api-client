@@ -64,18 +64,36 @@ export class ApiClient {
     }
     async attachImage(token, image) {
         const formData = new FormData();
-        if (image instanceof File) {
+        // Web
+        if (typeof File !== "undefined" && image instanceof File) {
             formData.append("attachments", image);
         }
-        else if (image.uri) {
-            formData.append("attachments", {
-                uri: image.uri,
-                name: image.name || "image.jpg",
-                type: image.type || "image/jpeg",
-            });
+        // React Native
+        else if (image && typeof image === "object" && "uri" in image) {
+            try {
+                const blob = await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.onload = () => {
+                        resolve(xhr.response);
+                    };
+                    xhr.onerror = () => {
+                        reject(new Error("Error while converting image to blob"));
+                    };
+                    xhr.responseType = "blob";
+                    xhr.open("GET", image.uri, true);
+                    xhr.send(null);
+                });
+                formData.append("attachments", blob, image.name);
+            }
+            catch (error) {
+                console.error("Error while converting image:", error);
+                /* @ts-ignore */
+                formData.append("attachments", image);
+            }
         }
         else {
-            throw new Error("Invalid image provided");
+            /* @ts-ignore */
+            formData.append("attachments", image);
         }
         const response = await this.httpRequest("attach", { body: formData, token });
         if (!response.success) {
