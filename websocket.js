@@ -14,15 +14,14 @@ export class WebSocketClient {
     constructor(url) {
         this.subscriptions = new Map();
         this.lastSubscriptionId = 0;
+        this.lastRequestId = 0;
         this.url = url;
     }
     init(token) {
         const isTestEnv = process.env.NODE_ENV === "test";
         this.socket = io(this.url, {
             auth: { token },
-            ...(isTestEnv
-                ? { transports: ["websocket"], reconnection: false, forceNew: true }
-                : {}),
+            ...(isTestEnv ? { transports: ["websocket"], reconnection: false, forceNew: true } : {}),
         });
         this.connectionPromise = new Promise((resolve, reject) => {
             this.resolveConnection = resolve;
@@ -36,6 +35,9 @@ export class WebSocketClient {
             var _a;
             (_a = this.rejectConnection) === null || _a === void 0 ? void 0 : _a.call(this, error);
         });
+    }
+    generateRequestId() {
+        return this.lastRequestId++;
     }
     async waitForSocket() {
         while (!this.socket) {

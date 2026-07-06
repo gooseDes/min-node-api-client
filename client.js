@@ -121,22 +121,25 @@ export class ApiClient {
     resetSocket() {
         this.socket.reset();
     }
-    socketFetchBase(emitEvent, event, data, successCallback, errorCallback) {
+    socketFetchBase(emitEvent, event, data, successCallback, errorCallback, useRequestId = false) {
         let successSub;
         let errorSub;
+        let requestId = useRequestId ? this.socket.generateRequestId() : undefined;
         const cleanup = () => {
             successSub.remove();
             errorSub.remove();
         };
         successSub = this.socket.subscribe(event, data => {
-            cleanup();
-            successCallback(data);
-        }, { once: true });
+            if (!useRequestId || data.requestId === requestId) {
+                cleanup();
+                successCallback(data);
+            }
+        }, { once: !useRequestId });
         errorSub = this.socket.subscribe("error", data => {
             cleanup();
             errorCallback(data);
         }, { once: true });
-        this.socket.emit(emitEvent, data);
+        this.socket.emit(emitEvent, { ...(useRequestId ? { requestId } : {}), ...data });
     }
     socketFetchBaseNoError(emitEvent, event, data, callback) {
         let successSub;
@@ -151,7 +154,7 @@ export class ApiClient {
      */
     async fetchUser(config) {
         return new Promise(resolve => {
-            this.socketFetchBase("getUserInfo", "userInfo", "username" in config ? { name: config.username } : { id: config.userId }, data => resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }), data => resolve({ success: false, message: data.msg }));
+            this.socketFetchBase("getUserInfo", "userInfo", "username" in config ? { name: config.username } : { id: config.userId }, data => resolve({ success: true, user: { id: data.user.id, username: data.user.name, avatar: data.user.avatar } }), data => resolve({ success: false, message: data.msg }), true);
         });
     }
     /**
@@ -170,7 +173,7 @@ export class ApiClient {
                     isSeen: data.message.seen,
                     seenAt: toDate(data.message.seenAt),
                 },
-            }), data => resolve({ success: false, message: data.msg }));
+            }), data => resolve({ success: false, message: data.msg }), true);
         });
     }
     /**

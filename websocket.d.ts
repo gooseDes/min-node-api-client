@@ -15,8 +15,10 @@ export declare class WebSocketClient {
     private connectionPromise;
     private resolveConnection;
     private rejectConnection;
+    private lastRequestId;
     constructor(url: string);
     init(token: string): void;
+    generateRequestId(): number;
     waitForSocket(): Promise<void>;
     subscribe(event: WebSocketEvent, callback: (data: any) => void, options?: WebSocketSubscribeOptions): Subscription;
     removeSubscription(id: number): void;
