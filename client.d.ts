@@ -14,6 +14,8 @@ export declare class ApiClient {
     initSocket(token: string): void;
     closeSocket(): void;
     resetSocket(): void;
+    subscribeToSocketConnectionSuccess(callback: () => void): void;
+    subscribeToSocketConnectionError(callback: (error: Error) => void): void;
     private socketFetchBase;
     private socketFetchBaseNoError;
     /**

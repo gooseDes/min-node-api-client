@@ -14,7 +14,7 @@ export class WebSocketClient {
     constructor(url) {
         this.subscriptions = new Map();
         this.lastSubscriptionId = 0;
-        this.lastRequestId = 0;
+        this.isConnected = false;
         this.url = url;
     }
     init(token) {
@@ -29,15 +29,33 @@ export class WebSocketClient {
         });
         this.socket.on("connect", () => {
             var _a;
+            this.isConnected = true;
             (_a = this.resolveConnection) === null || _a === void 0 ? void 0 : _a.call(this);
         });
         this.socket.on("connect_error", error => {
             var _a;
+            this.isConnected = false;
+            this.connectError = error;
             (_a = this.rejectConnection) === null || _a === void 0 ? void 0 : _a.call(this, error);
         });
     }
-    generateRequestId() {
-        return this.lastRequestId++;
+    subscribeToConnectionSuccess(callback) {
+        var _a;
+        if (this.isConnected) {
+            callback();
+        }
+        else {
+            (_a = this.socket) === null || _a === void 0 ? void 0 : _a.on("connect", () => callback());
+        }
+    }
+    subscribeToConnectionError(callback) {
+        var _a;
+        if (this.connectError) {
+            callback(this.connectError);
+        }
+        else {
+            (_a = this.socket) === null || _a === void 0 ? void 0 : _a.on("connect_error", error => callback(error));
+        }
     }
     async waitForSocket() {
         while (!this.socket) {
@@ -95,6 +113,8 @@ export class WebSocketClient {
         if (this.socket) {
             this.socket.disconnect();
         }
+        this.isConnected = false;
+        this.connectError = undefined;
         this.connectionPromise = undefined;
         this.resolveConnection = undefined;
         this.rejectConnection = undefined;
@@ -109,6 +129,8 @@ export class WebSocketClient {
         catch (e) {
             console.error("WebSocketClient: error during disconnect", e);
         }
+        this.isConnected = false;
+        this.connectError = undefined;
         this.socket = undefined;
         this.subscriptions.clear();
         this.lastSubscriptionId = 0;
