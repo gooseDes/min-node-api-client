@@ -2,6 +2,7 @@ import { ApiClientOptions, AttachImageResult, CreateChatConfig, CreateChatResult
 import { Subscription, WebSocketClient } from "./websocket";
 export declare class ApiClient {
     private url;
+    private lastRequestId;
     socket: WebSocketClient;
     constructor(options: ApiClientOptions);
     jsonHttpRequest(endpoint: string, data: any): Promise<JsonHttpRequestResult>;
@@ -17,7 +18,6 @@ export declare class ApiClient {
     subscribeToSocketConnectionSuccess(callback: () => void): void;
     subscribeToSocketConnectionError(callback: (error: Error) => void): void;
     private socketFetchBase;
-    private socketFetchBaseNoError;
     /**
      * Requires socket
      */

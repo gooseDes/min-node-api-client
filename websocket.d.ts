@@ -1,10 +1,10 @@
-import { WebSocketEmitEvent, WebSocketEvent, WebSocketSubscribeOptions } from "./types";
+import { WebSocketEvent, WebSocketOnlyReceiveEvent, WebSocketSubscribeOptions } from "./types";
 export declare class Subscription {
     private id;
-    event: WebSocketEvent;
+    event: WebSocketEvent | WebSocketOnlyReceiveEvent;
     callback: (data: any) => void;
     private socket;
-    constructor(id: number, socket: WebSocketClient, event: WebSocketEvent, callback: (data: any) => void);
+    constructor(id: number, socket: WebSocketClient, event: WebSocketEvent | WebSocketOnlyReceiveEvent, callback: (data: any) => void);
     remove(): void;
 }
 export declare class WebSocketClient {
@@ -22,9 +22,9 @@ export declare class WebSocketClient {
     subscribeToConnectionSuccess(callback: () => void): void;
     subscribeToConnectionError(callback: (error: Error) => void): void;
     waitForSocket(): Promise<void>;
-    subscribe(event: WebSocketEvent, callback: (data: any) => void, options?: WebSocketSubscribeOptions): Subscription;
+    subscribe(event: WebSocketEvent | WebSocketOnlyReceiveEvent, callback: (data: any) => void, options?: WebSocketSubscribeOptions): Subscription;
     removeSubscription(id: number): void;
-    emit(event: WebSocketEmitEvent, data: any): void;
+    emit(event: WebSocketEvent | WebSocketOnlyReceiveEvent, data: any): void;
     close(): void;
     reset(): void;
 }

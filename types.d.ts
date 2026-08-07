@@ -65,8 +65,8 @@ export type UploadAvatarResult = Failed | {
     url: string;
     avatar: string;
 };
-export type WebSocketEvent = "connect" | "disconnect" | "connect_error" | "error" | "message" | "deleteMessage" | "history" | "username" | "createChatResult" | "chats" | "userInfo" | "getChatWithResult" | "customEmojis" | "joinedVoice" | "turnUrls" | "requestedMessage" | "messageSent" | "messageDeleted" | "fcmTokenAdded";
-export type WebSocketEmitEvent = "msg" | "getChatHistory" | "getName" | "createChat" | "getChats" | "getUserInfo" | "getChatWith" | "getCustomEmojis" | "seenAll" | "deleteMessage" | "joinVoice" | "voiceAction" | "getTurnUrls" | "addFcmToken" | "getMessage";
+export type WebSocketEvent = "sendMessage" | "fetchChatMessages" | "fetchMyUsername" | "createChat" | "fetchChats" | "fetchUserInfo" | "fetchChatId" | "fetchCustomEmojis" | "seenAll" | "deleteMessage" | "linkFcmToken" | "fetchMessage";
+export type WebSocketOnlyReceiveEvent = "connect" | "disconnect" | "connect_error" | "newMessage" | "messageDeleted" | "seenAll";
 export type WebSocketSubscribeOptions = {
     once?: boolean;
 };
